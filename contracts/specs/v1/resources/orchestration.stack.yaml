@@ -1,0 +1,22 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/orchestration.stack
+  version: v1
+  displayName: Orchestration Stack
+  description: Orion orchestration stack backend
+spec:
+  fields:
+    name: {type: string, required: true}
+    template: {type: object, required: true}
+    parameters: {type: object}
+    timeout_mins: {type: integer}
+    id: {type: string}
+  operations:
+    create: {description: Create orchestration stack, sideEffects: true}
+    delete: {description: Delete orchestration stack, sideEffects: true}
+    get: {description: Read orchestration stack}
+    list: {description: List orchestration stacks}
+    update: {description: Update orchestration stack, sideEffects: true}
+    suspend: {description: Suspend orchestration stack, sideEffects: true}
+    resume: {description: Resume orchestration stack, sideEffects: true}

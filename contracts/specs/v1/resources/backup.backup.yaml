@@ -1,0 +1,43 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/backup.backup
+  version: v1
+  displayName: Backup
+  description: Resource backup
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+
+    resource_kind:
+      type: string
+      required: true
+      description: Kind of resource being backed up
+
+    resource_id:
+      type: string
+      required: true
+
+    type:
+      type: string
+      description: Backup type (full, incremental)
+
+    retention_days:
+      type: integer
+      default: 30
+
+  operations:
+    create:
+      description: Create backup
+
+    delete:
+      description: Delete backup
+
+    restore:
+      description: Restore from backup
+
+    list:
+      description: List backups for resource

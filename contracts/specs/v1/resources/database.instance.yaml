@@ -1,0 +1,54 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/database.instance
+  version: v1
+  displayName: Database Instance
+  description: Managed database instance
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+
+    engine:
+      type: string
+      required: true
+      description: Database engine (postgresql, mysql, redis, etc.)
+
+    engine_version:
+      type: string
+      required: true
+
+    size:
+      type: integer
+      description: Storage size in GB
+
+    instance_type:
+      type: string
+      description: Instance size (small, medium, large)
+
+    network:
+      type: string
+      description: Network ID
+
+    backupRetentionDays:
+      type: integer
+      default: 7
+
+  operations:
+    create:
+      description: Create database instance
+
+    delete:
+      description: Delete instance
+
+    restart:
+      description: Restart database
+
+    backup:
+      description: Create manual backup
+
+    restore:
+      description: Restore from backup

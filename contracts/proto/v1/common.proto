@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package orion.common.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/orion/common/v1;commonv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+message OrionError {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+  int32 retry_after_seconds = 4;
+  google.protobuf.Struct details = 5;
+}
+
+message RequestContext {
+  string tenant_id = 1;
+  string project_id = 2;
+  string user_id = 3;
+  string trace_id = 4;
+  string correlation_id = 5;
+  map<string, string> extra = 6;
+}
+
+message Operation {
+  string operation_id = 1;
+  string request_id = 2;
+  string idempotency_key = 3;
+  string tenant_id = 4;
+  string project_id = 5;
+  string provider_id = 6;
+  string resource = 7;
+  string resource_version = 8;
+  string operation_name = 9;
+  OperationState state = 10;
+  int32 attempt = 11;
+  int32 max_attempts = 12;
+  google.protobuf.Timestamp started_at = 13;
+  google.protobuf.Timestamp deadline_at = 14;
+  google.protobuf.Timestamp completed_at = 15;
+  string error_code = 16;
+  string error_message = 17;
+}
+
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  OPERATION_STATE_PENDING = 1;
+  OPERATION_STATE_RUNNING = 2;
+  OPERATION_STATE_SUCCEEDED = 3;
+  OPERATION_STATE_FAILED = 4;
+  OPERATION_STATE_CANCELLING = 5;
+  OPERATION_STATE_CANCELLED = 6;
+}
+
+message OperationStatus {
+  string operation_id = 1;
+  OperationState state = 2;
+  string resource = 3;
+  string resource_version = 4;
+  string operation_name = 5;
+  google.protobuf.Struct result = 6;
+  string error_code = 7;
+  string error_message = 8;
+  google.protobuf.Timestamp started_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  google.protobuf.Timestamp completed_at = 11;
+  int32 progress_percent = 12;
+}

@@ -1,0 +1,98 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/compute.instance
+  version: v1
+  displayName: Compute Instance
+  description: Virtual machine instance
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+      description: Instance name
+
+    flavor:
+      type: string
+      required: true
+      description: Instance flavor (e.g., small, medium, large)
+
+    image:
+      type: string
+      required: true
+      description: Boot image ID
+
+    zone:
+      type: string
+      required: true
+      description: Availability zone
+
+    networks:
+      type: array
+      items:
+        type: string
+      description: Network IDs to attach
+
+    volumes:
+      type: array
+      items:
+        type: string
+      description: Volume IDs to attach
+
+    ssh_key:
+      type: string
+      description: SSH public key
+
+    user_data:
+      type: string
+      description: Cloud-init user data
+
+operations:
+  create:
+    description: Create a new compute instance
+    sideEffects: true
+
+  delete:
+    description: Delete the instance
+    sideEffects: true
+
+  start:
+    description: Start a stopped instance
+    sideEffects: true
+
+  stop:
+    description: Stop a running instance
+    sideEffects: true
+
+  restart:
+    description: Reboot the instance
+    sideEffects: true
+
+  resize:
+    description: Resize the instance (requires stop)
+    sideEffects: true
+
+  rebuild:
+    description: Rebuild instance with new image
+    sideEffects: true
+
+  pause:
+    description: Pause the instance
+    sideEffects: true
+
+  unpause:
+    description: Unpause the instance
+    sideEffects: true
+
+observe:
+  description: Get current instance state and power status
+
+discover:
+  description: List all instances in provider
+
+relationships:
+  - kind: orion.io/network.port
+    target: true
+  - kind: orion.io/storage.attachment
+    target: true

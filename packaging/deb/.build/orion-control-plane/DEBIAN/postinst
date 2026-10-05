@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+if [ -x /usr/bin/orion-bootstrap ]; then
+  /usr/bin/orion-bootstrap --ensure-env >/dev/null 2>&1 || true
+fi
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+exit 0

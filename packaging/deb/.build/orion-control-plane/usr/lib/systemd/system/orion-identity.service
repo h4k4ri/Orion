@@ -1,0 +1,16 @@
+[Unit]
+Description=Orion orion-identity
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/orion/orion.env
+ExecStartPre=/usr/lib/orion/orion-bootstrap --ensure-dirs
+WorkingDirectory=/var/lib/orion
+ExecStart=/usr/bin/orion-identity
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package placement.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/placement/v1;placementv1";
+
+service PlacementService {
+  rpc RegisterHost(RegisterHostRequest) returns (HostRegistrationResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HostRegistrationResponse);
+}
+
+message RegisterHostRequest {
+  string host_id = 1;
+  string cell_id = 2;
+  string node_agent_url = 3;
+  string volume_host_agent_url = 4;
+  string network_host_agent_url = 5;
+  int32 vcpus_total = 6;
+  int32 memory_mb_total = 7;
+  int32 disk_gb_total = 8;
+  repeated string traits = 9;
+  string availability_zone = 10;
+  string host_aggregate = 11;
+}
+
+message HeartbeatRequest {
+  RegisterHostRequest host = 1;
+}
+
+message HostRegistrationResponse {
+  bool accepted = 1;
+  string host_id = 2;
+  int64 generation = 3;
+  string message = 4;
+}

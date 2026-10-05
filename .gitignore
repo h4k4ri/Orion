@@ -1,0 +1,28 @@
+.DS_Store
+.idea/
+.vscode/
+bin/
+dist/
+tmp/
+.cache/
+.env
+.env.local
+node_modules/
+docs-site/dist/
+target/
+
+# Build artifacts / stray binaries
+/orion
+/orion-network
+/orion-placement
+/cmd
+*.pb.cc
+*.pb.h
+*.o
+*.a
+
+# Packaging artifacts
+packaging/deb/*.deb
+packaging/deb/out/*.deb
+*.tgz
+*.tar.gz

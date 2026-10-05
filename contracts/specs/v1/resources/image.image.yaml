@@ -1,0 +1,47 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/image.image
+  version: v1
+  displayName: Image
+  description: Virtual machine image
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+
+    url:
+      type: string
+      description: URL to download image
+
+    format:
+      type: string
+      description: Image format (qcow2, raw, vhd, etc.)
+
+    size:
+      type: integer
+      description: Image size in bytes
+
+    min_disk:
+      type: integer
+      description: Minimum disk size required
+
+    min_ram:
+      type: integer
+      description: Minimum RAM required
+
+    os_type:
+      type: string
+      description: Operating system type (linux, windows)
+
+operations:
+  create:
+    description: Register image
+
+  delete:
+    description: Delete image
+
+  update:
+    description: Update image metadata

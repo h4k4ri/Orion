@@ -1,0 +1,15 @@
+version: v2
+managed:
+  enabled: true
+lint:
+  use:
+    - DEFAULT
+plugins:
+  - remote: buf.build/prost/crates:v1.4.0
+    out: src/generated
+    opt:
+      - derive=serde::Serialize,serde::Deserialize
+  - remote: buf.build/tonic/crates:v0.4.0
+    out: src/generated
+    opt:
+      - no_include_validation

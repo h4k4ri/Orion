@@ -1,0 +1,100 @@
+kind: orion.io/storage.snapshot
+version: v1
+
+description: Volume snapshots
+
+capabilitiesSchema:
+  type: object
+  properties:
+    rollback:
+      type: boolean
+    clone:
+      type: boolean
+    maxSnapshotsPerVolume:
+      type: integer
+
+operations:
+  - name: create
+    description: Create a snapshot
+    async: true
+    inputSchema:
+      type: object
+      required: [sourceVolumeId, name]
+      properties:
+        sourceVolumeId:
+          type: string
+        name:
+          type: string
+    outputSchema:
+      type: object
+      properties:
+        resourceId:
+          type: string
+
+  - name: delete
+    description: Delete a snapshot
+    async: true
+    inputSchema:
+      type: object
+      required: [resourceId]
+      properties:
+        resourceId:
+          type: string
+
+  - name: restore
+    description: Restore a snapshot
+    async: true
+    inputSchema:
+      type: object
+      required: [resourceId]
+      properties:
+        resourceId:
+          type: string
+
+  - name: clone
+    description: Clone a snapshot to a new volume
+    async: true
+    inputSchema:
+      type: object
+      required: [resourceId, name]
+      properties:
+        resourceId:
+          type: string
+        name:
+          type: string
+
+providerContract:
+  version: v1
+  operations:
+    - name: create
+      inputSchema:
+        required: [sourceVolumeId, name]
+        properties:
+          sourceVolumeId:
+            type: string
+          name:
+            type: string
+      outputSchema:
+        properties:
+          externalId:
+            type: string
+    - name: delete
+      inputSchema:
+        required: [externalId]
+        properties:
+          externalId:
+            type: string
+    - name: restore
+      inputSchema:
+        required: [externalId]
+        properties:
+          externalId:
+            type: string
+    - name: clone
+      inputSchema:
+        required: [externalId, name]
+        properties:
+          externalId:
+            type: string
+          name:
+            type: string

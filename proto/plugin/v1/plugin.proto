@@ -1,0 +1,745 @@
+syntax = "proto3";
+
+package plugin.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/plugin/v1;pluginv1";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// ============================================================
+// RESOURCE SPECIFICATIONS
+// Public contract: logical resource model (no externalId, no provider details)
+// ============================================================
+
+message ResourceSpec {
+  string kind = 1;
+  string version = 2;
+  string description = 3;
+  repeated OperationSpec operations = 4;
+  Schema capabilities_schema = 5;
+  ProviderContractSpec provider_contract = 6;  // official internal contract
+}
+
+message OperationSpec {
+  string name = 1;
+  string description = 2;
+  bool async = 3;
+  bool cancellable = 4;
+  Schema input_schema = 5;
+  Schema output_schema = 6;
+}
+
+// ============================================================
+// PROVIDER CONTRACT SPEC (Official)
+// Maintained by Orion, not by plugins
+// ============================================================
+
+message ProviderContractSpec {
+  string version = 1;  // e.g., "v1"
+  repeated ProviderOperationSpec operations = 2;
+}
+
+message ProviderOperationSpec {
+  string name = 1;
+  Schema input_schema = 2;
+  Schema output_schema = 3;
+}
+
+// ============================================================
+// RELATIONSHIP SPECIFICATION
+// ============================================================
+
+message RelationshipSpec {
+  string kind = 1;
+  string version = 2;
+  string description = 3;
+  repeated Participant participants = 4;
+  repeated WorkflowStep workflow_attach = 5;
+  repeated WorkflowStep workflow_detach = 6;
+  Schema config_schema = 7;
+  repeated Dependency dependencies = 8;
+}
+
+message Participant {
+  string role = 1;
+  string resource_kind = 2;
+  repeated string required_operations = 3;
+  repeated OperationSpec operations = 4;
+}
+
+message WorkflowStep {
+  string role = 1;
+  string operation = 2;
+  string compensate_with = 3;
+}
+
+// ============================================================
+// WORKFLOW / SAGA
+// ============================================================
+
+message RelationshipExecution {
+  string execution_id = 1;
+  string relationship_id = 2;
+  string operation = 3;
+  repeated SagaStepExecution steps = 4;
+  RelationshipState state = 5;
+  OrionError error = 6;
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp completed_at = 8;
+}
+
+message SagaStepExecution {
+  int32 index = 1;
+  string role = 2;
+  string operation = 3;
+  google.protobuf.Struct input = 4;
+  google.protobuf.Struct output = 5;
+  StepState state = 6;
+  bool compensation_required = 7;
+  google.protobuf.Struct compensation_input = 8;
+  OrionError error = 9;
+}
+
+enum StepState {
+  STEP_STATE_UNSPECIFIED = 0;
+  STEP_STATE_PENDING = 1;
+  STEP_STATE_RUNNING = 2;
+  STEP_STATE_SUCCEEDED = 3;
+  STEP_STATE_FAILED = 4;
+  STEP_STATE_COMPENSATING = 5;
+  STEP_STATE_COMPENSATED = 6;
+  STEP_STATE_COMPENSATION_FAILED = 7;
+}
+
+// ============================================================
+// DEPENDENCY
+// ============================================================
+
+message Dependency {
+  string name = 1;
+  DependencyRequirement requires = 2;
+}
+
+message DependencyRequirement {
+  string kind = 1;
+  string version = 2;
+  repeated string operations = 3;
+}
+
+// ============================================================
+// SCHEMA
+// ============================================================
+
+message Schema {
+  string type = 1;
+  string description = 2;
+  repeated string enum = 3;
+  int64 minimum = 4;
+  int64 maximum = 5;
+  int64 min_items = 6;
+  int64 max_items = 7;
+  string pattern = 8;
+  string format = 9;
+  google.protobuf.Value default = 10;
+  repeated string required = 11;
+  map<string, Schema> properties = 12;
+  SchemaProperty items = 13;
+  bool additional_properties = 14;
+  repeated Schema any_of = 15;
+  repeated Schema one_of = 16;
+}
+
+message SchemaProperty {
+  string type = 1;
+  string description = 2;
+  repeated string enum = 3;
+  google.protobuf.Value default = 4;
+  int64 minimum = 5;
+  int64 maximum = 6;
+  int64 min_items = 7;
+  int64 max_items = 8;
+  string pattern = 9;
+  string format = 10;
+  bool additional_properties = 11;
+}
+
+// ============================================================
+// PLUGIN MANIFEST
+// Plugin declares what it implements; does NOT define contracts
+// ============================================================
+
+message PluginManifest {
+  string api_version = 1;
+  string plugin_id = 2;
+  string name = 3;
+  string version = 4;
+  string description = 5;
+  string vendor = 6;
+  Runtime runtime = 7;
+  Compatibility compatibility = 8;
+  repeated ImplementedResource implements = 9;
+  repeated ImplementedRelationship implements_relationships = 10;
+}
+
+message Runtime {
+  string protocol = 1;
+  string protocol_version = 2;
+}
+
+message Compatibility {
+  SDKConstraint sdk = 1;
+  CoreConstraint core = 2;
+}
+
+message SDKConstraint {
+  string min = 1;
+  string max = 2;
+}
+
+message CoreConstraint {
+  string min = 1;
+  string max = 2;
+}
+
+message ImplementedResource {
+  string kind = 1;
+  string version = 2;
+  repeated string operations = 3;
+  google.protobuf.Struct capabilities = 4;
+  Schema provider_config_schema = 5;
+  repeated SecretRefSpec provider_secrets_schema = 6;
+}
+
+message ImplementedRelationship {
+  string kind = 1;
+  string version = 2;
+  string role = 3;
+  repeated string operations = 4;
+  Schema relationship_config_schema = 5;
+}
+
+message SecretRefSpec {
+  string name = 1;
+  string kind = 2;
+  bool required = 3;
+  string description = 4;
+}
+
+// ============================================================
+// PROVIDER INSTANCE
+// ============================================================
+
+message ProviderInstance {
+  string provider_id = 1;
+  string plugin_id = 2;
+  string name = 3;
+  string endpoint = 4;
+  google.protobuf.Struct config = 5;
+  google.protobuf.Struct effective_capabilities = 6;
+  repeated SecretRef secrets = 7;
+  AdministrativeState administrative_state = 8;
+  HealthState health_state = 9;
+  int64 generation = 10;
+  int64 observed_generation = 11;
+  int64 created_at = 12;
+  int64 last_seen_at = 13;
+}
+
+enum AdministrativeState {
+  ADMINISTRATIVE_STATE_UNSPECIFIED = 0;
+  ADMINISTRATIVE_STATE_ENABLED = 1;
+  ADMINISTRATIVE_STATE_DISABLED = 2;
+  ADMINISTRATIVE_STATE_DRAINING = 3;
+}
+
+enum HealthState {
+  HEALTH_STATE_UNSPECIFIED = 0;
+  HEALTH_STATE_HEALTHY = 1;
+  HEALTH_STATE_DEGRADED = 2;
+  HEALTH_STATE_UNHEALTHY = 3;
+  HEALTH_STATE_UNKNOWN = 4;
+}
+
+message SecretRef {
+  string name = 1;
+  string secret_kind = 2;
+  string ref = 3;
+}
+
+// ============================================================
+// REQUEST CONTEXT
+// ============================================================
+
+message RequestContext {
+  string tenant_id = 1;
+  string project_id = 2;
+  string user_id = 3;
+  string trace_id = 4;
+  string correlation_id = 5;
+  map<string, string> extra = 6;
+}
+
+// ============================================================
+// ORION ERROR
+// ============================================================
+
+message OrionError {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+  int32 retry_after_seconds = 4;
+  google.protobuf.Struct details = 5;
+}
+
+// ============================================================
+// OPERATION
+// ============================================================
+
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  OPERATION_STATE_PENDING = 1;
+  OPERATION_STATE_RUNNING = 2;
+  OPERATION_STATE_SUCCEEDED = 3;
+  OPERATION_STATE_FAILED = 4;
+  OPERATION_STATE_CANCELLING = 5;
+  OPERATION_STATE_CANCELLED = 6;
+}
+
+message Operation {
+  string operation_id = 1;
+  string request_id = 2;
+  string idempotency_key = 3;
+  string tenant_id = 4;
+  string project_id = 5;
+  string provider_id = 6;
+  string resource = 7;
+  string resource_version = 8;
+  string operation_name = 9;
+  OperationState state = 10;
+  int32 attempt = 11;
+  int32 max_attempts = 12;
+  google.protobuf.Timestamp started_at = 13;
+  google.protobuf.Timestamp deadline_at = 14;
+  google.protobuf.Timestamp completed_at = 15;
+  OrionError error = 16;
+}
+
+message OperationStatus {
+  string operation_id = 1;
+  OperationState state = 2;
+  string resource = 3;
+  string resource_version = 4;
+  string operation_name = 5;
+  google.protobuf.Struct result = 6;
+  OrionError error = 7;
+  google.protobuf.Timestamp started_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp completed_at = 10;
+  int32 progress_percent = 11;
+}
+
+// ============================================================
+// RESOURCE
+// ============================================================
+
+message Resource {
+  string id = 1;
+  string tenant_id = 2;
+  string project_id = 3;
+  string kind = 4;
+  string version = 5;
+  string provider_id = 6;
+  string external_id = 7;
+  ResourceState state = 8;
+  google.protobuf.Struct desired_spec = 9;
+  google.protobuf.Struct actual_state = 10;
+  int64 generation = 11;
+  int64 observed_generation = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  google.protobuf.Timestamp observed_at = 15;
+}
+
+enum ResourceState {
+  RESOURCE_STATE_UNSPECIFIED = 0;
+  RESOURCE_STATE_PENDING = 1;
+  RESOURCE_STATE_PROVISIONING = 2;
+  RESOURCE_STATE_AVAILABLE = 3;
+  RESOURCE_STATE_UPDATING = 4;
+  RESOURCE_STATE_DELETING = 5;
+  RESOURCE_STATE_DELETED = 6;
+  RESOURCE_STATE_ERROR = 7;
+  RESOURCE_STATE_IMPORTING = 8;
+}
+
+// ============================================================
+// RESOURCE RELATIONSHIP
+// ============================================================
+
+message ResourceRelationship {
+  string id = 1;
+  string relationship_kind = 2;
+  string tenant_id = 3;
+  string project_id = 4;
+  string source_resource_id = 5;
+  string target_resource_id = 6;
+  RelationshipState state = 7;
+  google.protobuf.Struct config = 8;
+  int64 generation = 9;
+  int64 observed_generation = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+enum RelationshipState {
+  RELATIONSHIP_STATE_UNSPECIFIED = 0;
+  RELATIONSHIP_STATE_PENDING = 1;
+  RELATIONSHIP_STATE_PREPARING = 2;
+  RELATIONSHIP_STATE_ATTACHING = 3;
+  RELATIONSHIP_STATE_ACTIVE = 4;
+  RELATIONSHIP_STATE_DETACHING = 5;
+  RELATIONSHIP_STATE_COMPENSATING = 6;
+  RELATIONSHIP_STATE_DELETED = 7;
+  RELATIONSHIP_STATE_ERROR = 8;
+}
+
+// ============================================================
+// DISCOVER / IMPORT
+// ============================================================
+
+message DiscoveredResource {
+  string external_id = 1;
+  string kind = 2;
+  google.protobuf.Struct state = 3;
+  string provider_id = 4;
+}
+
+message DiscoverResponse {
+  repeated DiscoveredResource resources = 1;
+}
+
+message ImportResourceRequest {
+  RequestContext context = 1;
+  string provider_id = 2;
+  string kind = 3;
+  string version = 4;
+  string external_id = 5;
+  google.protobuf.Struct spec = 6;
+}
+
+message ImportResourceResponse {
+  Resource resource = 1;
+}
+
+// ============================================================
+// RECONCILIATION
+// ============================================================
+
+enum ReconcileMode {
+  RECONCILE_MODE_UNSPECIFIED = 0;
+  RECONCILE_MODE_OBSERVE = 1;
+  RECONCILE_MODE_REPORT = 2;
+  RECONCILE_MODE_ENFORCE = 3;
+}
+
+message DesiredState {
+  string resource_id = 1;
+  string resource = 2;
+  string resource_version = 3;
+  google.protobuf.Struct spec = 4;
+}
+
+message ActualState {
+  string resource_id = 1;
+  string resource = 2;
+  string resource_version = 3;
+  google.protobuf.Struct state = 4;
+  bool in_sync = 5;
+  repeated string drift = 6;
+}
+
+// ============================================================
+// SERVICES
+// ============================================================
+
+service PluginRegistry {
+  rpc RegisterPlugin(RegisterPluginRequest) returns (RegisterResponse);
+  rpc DeregisterPlugin(DeregisterPluginRequest) returns (DeregisterPluginResponse);
+  rpc GetPlugin(GetPluginRequest) returns (PluginManifest);
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
+
+  rpc GetResourceSpec(GetResourceSpecRequest) returns (ResourceSpec);
+  rpc ListResourceSpecs(ListResourceSpecsRequest) returns (ListResourceSpecsResponse);
+  rpc GetRelationshipSpec(GetRelationshipSpecRequest) returns (RelationshipSpec);
+  rpc ListRelationshipSpecs(ListRelationshipSpecsRequest) returns (ListRelationshipSpecsResponse);
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse);
+
+  rpc RegisterProvider(ProviderInstance) returns (RegisterProviderResponse);
+  rpc UpdateProvider(UpdateProviderRequest) returns (UpdateProviderResponse);
+  rpc DeregisterProvider(DeregisterProviderRequest) returns (DeregisterProviderResponse);
+  rpc GetProvider(GetProviderRequest) returns (ProviderInstance);
+  rpc ListProviders(ListProvidersRequest) returns (ListProvidersResponse);
+  rpc ListProvidersByResource(ListProvidersByResourceRequest) returns (ListProvidersResponse);
+
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+service ResourceService {
+  rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse);
+  rpc GetResource(GetResourceRequest) returns (Resource);
+  rpc UpdateResource(UpdateResourceRequest) returns (Resource);
+  rpc DeleteResource(DeleteResourceRequest) returns (Resource);
+  rpc ListResources(ListResourcesRequest) returns (ListResourcesResponse);
+  rpc ListResourcesByKind(ListResourcesByKindRequest) returns (ListResourcesResponse);
+
+  rpc ImportResource(ImportResourceRequest) returns (ImportResourceResponse);
+
+  rpc CreateRelationship(CreateRelationshipRequest) returns (ResourceRelationship);
+  rpc GetRelationship(GetRelationshipRequest) returns (ResourceRelationship);
+  rpc DeleteRelationship(DeleteRelationshipRequest) returns (ResourceRelationship);
+  rpc ListRelationships(ListRelationshipsRequest) returns (ListRelationshipsResponse);
+
+  rpc ObserveResource(ObserveResourceRequest) returns (Resource);
+  rpc DiscoverUnmanaged(DiscoverUnmanagedRequest) returns (DiscoverResponse);
+}
+
+service PluginExecutor {
+  rpc Invoke(InvokeRequest) returns (InvokeResponse);
+  rpc InvokeAsync(InvokeRequest) returns (OperationStatus);
+  rpc GetOperationStatus(GetOperationStatusRequest) returns (OperationStatus);
+  rpc CancelOperation(CancelOperationRequest) returns (OperationStatus);
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+
+message InvokeRequest {
+  RequestContext context = 1;
+  string request_id = 2;
+  string idempotency_key = 3;
+  string provider_id = 4;
+  string resource = 5;
+  string resource_version = 6;
+  string operation = 7;
+  google.protobuf.Struct payload = 8;
+  map<string, string> metadata = 9;
+}
+
+message InvokeResponse {
+  bool success = 1;
+  google.protobuf.Struct result = 2;
+  OrionError error = 3;
+  string request_id = 4;
+}
+
+message GetOperationStatusRequest {
+  string operation_id = 1;
+}
+
+message CancelOperationRequest {
+  string operation_id = 1;
+  RequestContext context = 2;
+}
+
+message ObserveResourceRequest {
+  RequestContext context = 1;
+  string resource_id = 2;
+}
+
+message DiscoverUnmanagedRequest {
+  RequestContext context = 1;
+  string provider_id = 2;
+  string kind = 3;
+  string version = 4;
+}
+
+message ReconcileRequest {
+  RequestContext context = 1;
+  string provider_id = 2;
+  ReconcileMode mode = 3;
+  DesiredState desired = 4;
+}
+
+message ReconcileResponse {
+  bool success = 1;
+  OrionError error = 2;
+  ActualState actual = 3;
+  repeated string corrections = 4;
+}
+
+message RegisterPluginRequest {
+  PluginManifest manifest = 1;
+  string api_key = 2;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string message = 2;
+  string registered_at = 3;
+}
+
+message DeregisterPluginRequest {
+  string plugin_id = 1;
+  string api_key = 2;
+}
+
+message DeregisterPluginResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetPluginRequest {
+  string plugin_id = 1;
+}
+
+message ListPluginsRequest {}
+
+message ListPluginsResponse {
+  repeated PluginManifest plugins = 1;
+}
+
+message GetResourceSpecRequest {
+  string kind = 1;
+  string version = 2;
+}
+
+message ListResourceSpecsRequest {}
+
+message ListResourceSpecsResponse {
+  repeated ResourceSpec specs = 1;
+}
+
+message GetRelationshipSpecRequest {
+  string kind = 1;
+  string version = 2;
+}
+
+message ListRelationshipSpecsRequest {}
+
+message ListRelationshipSpecsResponse {
+  repeated RelationshipSpec specs = 1;
+}
+
+message ListResourcesRequest {}
+
+message ListResourcesResponse {
+  repeated Resource resources = 1;
+}
+
+message GetResourceRequest {
+  string id = 1;
+}
+
+message CreateResourceRequest {
+  RequestContext context = 1;
+  string kind = 2;
+  string version = 3;
+  string provider_id = 4;
+  google.protobuf.Struct spec = 5;
+}
+
+message CreateResourceResponse {
+  Resource resource = 1;
+  OperationStatus operation = 2;
+}
+
+message UpdateResourceRequest {
+  string id = 1;
+  int64 generation = 2;
+  google.protobuf.Struct desired_spec = 3;
+}
+
+message DeleteResourceRequest {
+  string id = 1;
+}
+
+message ListResourcesByKindRequest {
+  string kind = 1;
+  string version = 2;
+}
+
+message GetRelationshipRequest {
+  string id = 1;
+}
+
+message CreateRelationshipRequest {
+  RequestContext context = 1;
+  string relationship_kind = 2;
+  string source_resource_id = 3;
+  string target_resource_id = 4;
+  google.protobuf.Struct config = 5;
+}
+
+message DeleteRelationshipRequest {
+  string id = 1;
+}
+
+message ListRelationshipsRequest {}
+
+message ListRelationshipsResponse {
+  repeated ResourceRelationship relationships = 1;
+}
+
+message RegisterProviderResponse {
+  bool success = 1;
+  string message = 2;
+  string provider_id = 3;
+}
+
+message UpdateProviderRequest {
+  string provider_id = 1;
+  int64 generation = 2;
+  ProviderInstance update = 3;
+}
+
+message UpdateProviderResponse {
+  bool success = 1;
+  string message = 2;
+  int64 generation = 3;
+}
+
+message DeregisterProviderRequest {
+  string provider_id = 1;
+  string api_key = 2;
+}
+
+message DeregisterProviderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetProviderRequest {
+  string provider_id = 1;
+}
+
+message ListProvidersRequest {}
+
+message ListProvidersByResourceRequest {
+  string resource = 1;
+}
+
+message ListProvidersResponse {
+  repeated ProviderInstance providers = 1;
+}
+
+message HeartbeatRequest {
+  string provider_id = 1;
+  string api_key = 2;
+  HealthState health_state = 3;
+}
+
+message HeartbeatResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string message = 2;
+}

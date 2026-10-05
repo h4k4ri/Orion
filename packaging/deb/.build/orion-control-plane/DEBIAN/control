@@ -1,0 +1,8 @@
+Package: orion-control-plane
+Version: 0.1.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Maintainer: Horizon <opensource@horizon.invalid>
+Depends: bash, ca-certificates, orion-common (= 0.1.0)
+Description: Orion control plane starter package.

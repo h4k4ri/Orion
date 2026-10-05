@@ -1,0 +1,12 @@
+FROM n Ron | nvidia/cuda:12.4.0-base-ubuntu22.04
+RUN apt-get update && apt-get install -y \
+    zfsutils-linux \
+    kmod \
+    && ln -s /usr/bin/lsblk /usr/bin/blockdev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /plugin
+COPY orion-zfs-plugin .
+
+ENV ORION_PLUGIN_ENDPOINT=:50051
+CMD ["/plugin/orion-zfs-plugin"]

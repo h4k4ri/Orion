@@ -1,0 +1,35 @@
+kind: orion.io/storage.filesystem
+version: v1
+
+description: Shared filesystem backed by a provider such as CephFS or SMB
+
+operations:
+  - name: create
+    description: Create a filesystem or provider subvolume
+    async: true
+    inputSchema:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        sizeGb: {type: integer, minimum: 1}
+        group: {type: string}
+  - name: delete
+    description: Delete the provider filesystem or subvolume
+    async: true
+  - name: resize
+    description: Resize the filesystem quota
+    async: true
+  - name: mount
+    description: Mount the filesystem on a host
+    sideEffects: true
+  - name: unmount
+    description: Unmount the filesystem from a host
+    sideEffects: true
+
+capabilitiesSchema:
+  type: object
+  properties:
+    snapshots: {type: boolean}
+    quotas: {type: boolean}
+    encryption: {type: boolean}

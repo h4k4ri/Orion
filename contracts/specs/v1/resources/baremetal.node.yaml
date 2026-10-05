@@ -1,0 +1,23 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/baremetal.node
+  version: v1
+  displayName: Bare Metal Node
+  description: Orion bare metal node backend
+spec:
+  fields:
+    uuid: {type: string}
+    driver: {type: string, required: true}
+    driver_info: {type: object}
+    properties: {type: object}
+    target: {type: string}
+  operations:
+    create: {description: Register bare metal node, sideEffects: true}
+    delete: {description: Delete bare metal node, sideEffects: true}
+    get: {description: Read bare metal node}
+    list: {description: List bare metal nodes}
+    update: {description: Update bare metal node, sideEffects: true}
+    provision: {description: Provision bare metal node, sideEffects: true}
+    deprovision: {description: Deprovision bare metal node, sideEffects: true}
+    set_power_state: {description: Set bare metal power state, sideEffects: true}

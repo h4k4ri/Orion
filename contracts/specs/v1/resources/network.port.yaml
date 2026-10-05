@@ -1,0 +1,49 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/network.port
+  version: v1
+  displayName: Network Port
+  description: Network interface port
+
+spec:
+  fields:
+    network:
+      type: string
+      required: true
+
+    name:
+      type: string
+
+    fixed_ips:
+      type: array
+      items:
+        type: object
+
+    mac_address:
+      type: string
+
+    admin_state_up:
+      type: boolean
+      default: true
+
+    security_groups:
+      type: array
+      items:
+        type: string
+
+operations:
+  create:
+    description: Create port
+
+  delete:
+    description: Delete port
+
+  update:
+    description: Update port settings
+
+relationships:
+  - kind: orion.io/network.network
+    source: true
+  - kind: orion.io/compute.instance
+    target: true

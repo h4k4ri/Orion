@@ -1,0 +1,49 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/network.subnet
+  version: v1
+  displayName: Network Subnet
+  description: Subnet within a virtual network
+
+spec:
+  fields:
+    network:
+      type: string
+      required: true
+      description: Parent network ID
+
+    name:
+      type: string
+      required: true
+
+    cidr:
+      type: string
+      required: true
+
+    gateway:
+      type: string
+      description: Gateway IP
+
+    dns_servers:
+      type: array
+      items:
+        type: string
+
+    allocation_pool:
+      type: object
+      description: DHCP allocation range
+
+operations:
+  create:
+    description: Create subnet
+
+  delete:
+    description: Delete subnet
+
+  update:
+    description: Update subnet settings
+
+relationships:
+  - kind: orion.io/network.network
+    source: true

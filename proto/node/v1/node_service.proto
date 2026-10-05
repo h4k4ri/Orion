@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package node.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/node/v1;nodev1";
+
+import "node/v1/node.proto";
+import "google/protobuf/empty.proto";
+import "common/v1/common.proto";
+
+// ============================================================================
+// NodeAgent gRPC service
+// All synchronous, control-plane-to-agent communication
+// Async workflows use NATS JetStream (separate subject)
+// ============================================================================
+
+service NodeAgentService {
+  // Node lifecycle
+  rpc RegisterNode(RegisterNodeRequest) returns (RegisterNodeResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+
+  // Inventory and observability
+  rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse);
+
+  // Instance management (synchronous path for admin/debug, not main provisioning)
+  rpc BuildInstance(BuildInstanceRequest) returns (BuildInstanceResponse);
+  rpc DestroyInstance(DestroyInstanceRequest) returns (DestroyInstanceResponse);
+  rpc ObserveInstance(ObserveInstanceRequest) returns (ObserveInstanceResponse);
+
+  // Volume attachment (synchronous for now; async via NATS in M3)
+  rpc AttachVolume(AttachVolumeRequest) returns (AttachVolumeResponse);
+  rpc DetachVolume(DetachVolumeRequest) returns (DetachVolumeResponse);
+
+  // Health
+  rpc Health(google.protobuf.Empty) returns (HealthResponse);
+}
+
+// ============================================================================
+// Instance management (sync admin path)
+// Main provisioning path is via NATS + reconciliation (M3+)
+// ============================================================================
+
+message BuildInstanceRequest {
+  common.v1.InstanceID instance_id = 1;
+  common.v1.NodeID host_id = 2;
+  string name = 3;
+  InstanceSpec spec = 4;
+}
+
+message InstanceSpec {
+  int32 vcpus = 1;
+  int64 memory_mb = 2;
+  int64 disk_gb = 3;
+  string flavor_id = 4;
+  ImageSpec image = 5;
+  repeated PortSpec ports = 6;
+  repeated VolumeAttachmentSpec volumes = 7;
+}
+
+message ImageSpec {
+  common.v1.ResourceID id = 1;
+  string source_path = 2;
+  string checksum_sha256 = 3;
+  int64 size_bytes = 4;
+  string source_url = 5;
+}
+
+message PortSpec {
+  common.v1.PortID id = 1;
+  string network_id = 2;
+  string mac_address = 3;
+  repeated FixedIP fixed_ips = 4;
+  int32 vlan_tag = 5;
+}
+
+message FixedIP {
+  string subnet_id = 1;
+  string ip_address = 2;
+}
+
+message VolumeAttachmentSpec {
+  common.v1.VolumeID volume_id = 1;
+  int32 device_index = 2;
+}
+
+message BuildInstanceResponse {
+  string domain_name = 1;
+  string status = 2;
+  string disk_path = 3;
+  repeated string network_ports = 4;
+}
+
+message DestroyInstanceRequest {
+  common.v1.InstanceID instance_id = 1;
+  common.v1.NodeID host_id = 2;
+}
+
+message DestroyInstanceResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message ObserveInstanceRequest {
+  common.v1.InstanceID instance_id = 1;
+  common.v1.NodeID host_id = 2;
+}
+
+message ObserveInstanceResponse {
+  string status = 1;
+  string domain_name = 2;
+  string observed_state = 3;
+}
+
+// ============================================================================
+// Volume attachment
+// ============================================================================
+
+message AttachVolumeRequest {
+  common.v1.InstanceID instance_id = 1;
+  common.v1.NodeID host_id = 2;
+  common.v1.VolumeID volume_id = 3;
+  string device_path = 4;
+}
+
+message AttachVolumeResponse {
+  bool success = 1;
+  string device_path = 2;
+  string error = 3;
+}
+
+message DetachVolumeRequest {
+  common.v1.InstanceID instance_id = 1;
+  common.v1.NodeID host_id = 2;
+  common.v1.VolumeID volume_id = 3;
+}
+
+message DetachVolumeResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ============================================================================
+// Health
+// ============================================================================
+
+message HealthResponse {
+  bool healthy = 1;
+  string version = 2;
+  string libvirt_status = 3;
+}

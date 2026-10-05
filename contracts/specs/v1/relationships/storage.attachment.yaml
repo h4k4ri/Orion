@@ -1,0 +1,82 @@
+kind: orion.io/storage.attachment
+version: v1
+
+description: Attach a volume to an instance
+
+participants:
+  - role: source
+    resourceKind: orion.io/storage.volume
+    requiredOperations: [prepare, release]
+    operations:
+      - name: prepare
+        description: Prepare volume for attachment
+        outputSchema:
+          type: object
+          required: [connection]
+          properties:
+            connection:
+              type: object
+              description: Opaque data passed to target
+      - name: release
+        description: Release volume after detachment
+        inputSchema:
+          type: object
+          required: [connection]
+          properties:
+            connection:
+              type: object
+
+  - role: target
+    resourceKind: orion.io/compute.instance
+    requiredOperations: [attach, detach]
+    operations:
+      - name: attach
+        description: Attach volume to instance
+        inputSchema:
+          type: object
+          required: [connection, config]
+          properties:
+            connection:
+              type: object
+            config:
+              type: object
+        outputSchema:
+          type: object
+          properties:
+            attachmentHandle:
+              type: string
+      - name: detach
+        description: Detach volume from instance
+        inputSchema:
+          type: object
+          required: [attachmentHandle]
+          properties:
+            attachmentHandle:
+              type: string
+
+workflow:
+  attach:
+    - role: source
+      operation: prepare
+      compensateWith: release
+    - role: target
+      operation: attach
+      compensateWith: detach
+
+  detach:
+    - role: target
+      operation: detach
+      compensateWith: attach
+    - role: source
+      operation: release
+      compensateWith: prepare
+
+configSchema:
+  type: object
+  properties:
+    device:
+      type: string
+    mountPoint:
+      type: string
+
+dependencies: []

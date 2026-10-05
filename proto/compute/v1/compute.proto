@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package compute.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/compute/v1;computev1";
+
+import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
+
+// ============================================================================
+// Instance
+// ============================================================================
+
+message Instance {
+  common.v1.InstanceID id = 1;
+  common.v1.ProjectID project_id = 2;
+  string name = 3;
+  InstanceState state = 4;
+  Flavor flavor = 5;
+  ImageRef image = 6;
+  common.v1.NodeID host_id = 7;
+  repeated VolumeRef volumes = 8;
+  repeated PortRef ports = 9;
+  string domain_name = 10;
+  string domain_uuid = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  map<string, string> metadata = 14;
+}
+
+enum InstanceState {
+  INSTANCE_STATE_UNSPECIFIED = 0;
+  INSTANCE_STATE_BUILD = 1;
+  INSTANCE_STATE_RUNNING = 2;
+  INSTANCE_STATE_PAUSED = 3;
+  INSTANCE_STATE_SHUTOFF = 4;
+  INSTANCE_STATE_CRASHED = 5;
+  INSTANCE_STATE_SUSPENDED = 6;
+  INSTANCE_STATE_ERROR = 7;
+  INSTANCE_STATE_DELETED = 8;
+}
+
+message Flavor {
+  string id = 1;
+  string name = 2;
+  int32 vcpus = 3;
+  int64 memory_mb = 4;
+  int64 disk_gb = 5;
+  map<string, string> extra_specs = 6;
+  bool is_public = 7;
+}
+
+message ImageRef {
+  common.v1.ResourceID id = 1;
+  string name = 2;
+  string checksum_sha256 = 3;
+  int64 size_bytes = 4;
+}
+
+message VolumeRef {
+  common.v1.VolumeID id = 1;
+  string device_path = 2;
+  int32 device_index = 3;
+}
+
+message PortRef {
+  common.v1.PortID id = 1;
+  string network_id = 2;
+  string mac_address = 3;
+  string ip_address = 4;
+}
+
+// ============================================================================
+// Create instance (for command payloads)
+// ============================================================================
+
+message CreateInstanceCommand {
+  common.v1.OperationID operation_id = 1;
+  common.v1.RequestID request_id = 2;
+  common.v1.ProjectID project_id = 3;
+  common.v1.InstanceID instance_id = 4;
+  string name = 5;
+  Flavor flavor = 6;
+  ImageRef image = 7;
+  common.v1.NodeID target_host_id = 8;
+  repeated VolumeRef volumes = 9;
+  repeated PortRef ports = 10;
+  map<string, string> metadata = 11;
+}

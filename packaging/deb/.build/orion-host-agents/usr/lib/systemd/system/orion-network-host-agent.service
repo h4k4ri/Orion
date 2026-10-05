@@ -1,0 +1,16 @@
+[Unit]
+Description=Orion orion-network-host-agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/orion/orion.env
+ExecStartPre=/usr/lib/orion/orion-bootstrap --ensure-dirs
+WorkingDirectory=/var/lib/orion
+ExecStart=/usr/bin/orion-network-host-agent
+Restart=on-failure
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target

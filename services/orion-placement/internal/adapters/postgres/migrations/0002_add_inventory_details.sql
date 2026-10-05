@@ -1,0 +1,2 @@
+ALTER TABLE placement_hosts ADD COLUMN IF NOT EXISTS numa JSONB NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE placement_hosts ADD COLUMN IF NOT EXISTS gpus JSONB NOT NULL DEFAULT '[]'::jsonb;

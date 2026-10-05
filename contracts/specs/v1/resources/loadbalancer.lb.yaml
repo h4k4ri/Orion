@@ -1,0 +1,52 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/loadbalancer.lb
+  version: v1
+  displayName: Load Balancer
+  description: Load balancer service
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+
+    algorithm:
+      type: string
+      default: round_robin
+      description: Load balancing algorithm
+
+    vip_network:
+      type: string
+      required: true
+
+    vip_subnet:
+      type: string
+      required: true
+
+    vip_port:
+      type: object
+
+    admin_state_up:
+      type: boolean
+      default: true
+
+  operations:
+    create:
+      description: Create load balancer
+
+    delete:
+      description: Delete load balancer
+
+    update:
+      description: Update load balancer settings
+
+    stats:
+      description: Get load balancer statistics
+
+  relationships:
+    - kind: orion.io/loadbalancer.pool
+      target: true
+    - kind: orion.io/loadbalancer.listener
+      source: true

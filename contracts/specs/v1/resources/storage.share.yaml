@@ -1,0 +1,34 @@
+kind: orion.io/storage.share
+version: v1
+
+description: Shared file export such as NFS, CephFS or SMB
+
+operations:
+  - name: create
+    description: Create and publish a shared filesystem
+    async: true
+    inputSchema:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string}
+        path: {type: string}
+        sizeGb: {type: integer, minimum: 1}
+        clients: {type: array, items: {type: string}}
+        options: {type: string}
+  - name: delete
+    description: Unpublish and delete the share
+    async: true
+  - name: attach
+    description: Mount the share on a host
+    sideEffects: true
+  - name: detach
+    description: Unmount the share from a host
+    sideEffects: true
+
+capabilitiesSchema:
+  type: object
+  properties:
+    concurrentAccess: {type: boolean}
+    quotas: {type: boolean}
+    snapshots: {type: boolean}

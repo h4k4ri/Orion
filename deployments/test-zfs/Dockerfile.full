@@ -1,0 +1,35 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    zfsutils-linux \
+    zfs-import \
+    zfs-auto-snapshot \
+    kmod \
+    golang-go \
+    && ln -s /usr/bin/lsblk /usr/bin/blockdev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /plugin
+
+COPY orion/go.mod /plugin/go.mod
+COPY orion/go.work /plugin/go.work
+COPY orion/sdk/go /plugin/sdk/go
+COPY orion/gen/go/plugin/v1 /plugin/gen/go/plugin/v1
+COPY orion/plugins/zfs /plugin/plugins/zfs
+
+RUN cd /plugin && \
+    go work sync && \
+    cd plugins/zfs && \
+    go mod init github.com/horizon/orion/plugins/zfs && \
+    go mod tidy && \
+    go build -o /tmp/orion-zfs-plugin ./cmd
+
+RUN cp /tmp/orion-zfs-plugin /plugin/orion-zfs-plugin && \
+    chmod +x /plugin/orion-zfs-plugin
+
+ENV ORION_PLUGIN_ENDPOINT=:50051
+
+CMD ["/plugin/orion-zfs-plugin"]

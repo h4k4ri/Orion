@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package operation.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/operation/v1;operationv1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "common/v1/common.proto";
+
+// ============================================================================
+// Operation — persistent workflow state
+// ============================================================================
+
+message Operation {
+  common.v1.OperationID id = 1;
+  string resource_type = 2;
+  common.v1.ResourceID resource_id = 3;
+  common.v1.ProjectID project_id = 4;
+  common.v1.RequestID request_id = 5;
+  string operation_type = 6;
+  OperationState state = 7;
+  string current_step = 8;
+  int32 attempt = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp started_at = 11;
+  google.protobuf.Timestamp finished_at = 12;
+  string error_code = 13;
+  string error_message = 14;
+  repeated OperationEvent events = 15;
+}
+
+// States visible to API clients
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  OPERATION_STATE_PENDING = 1;
+  OPERATION_STATE_RUNNING = 2;
+  OPERATION_STATE_SUCCEEDED = 3;
+  OPERATION_STATE_FAILED = 4;
+  OPERATION_STATE_CANCELLED = 5;
+  OPERATION_STATE_TIMED_OUT = 6;
+}
+
+// Internal workflow steps
+enum OperationStep {
+  STEP_UNSPECIFIED = 0;
+  STEP_PENDING = 1;
+  STEP_VALIDATING = 2;
+  STEP_SCHEDULING = 3;
+  STEP_ALLOCATING_NETWORK = 4;
+  STEP_PREPARING_STORAGE = 5;
+  STEP_SPAWNING = 6;
+  STEP_VERIFYING = 7;
+  STEP_DONE = 8;
+}
+
+// ============================================================================
+// Operation event — append-only history
+// ============================================================================
+
+message OperationEvent {
+  common.v1.ResourceID id = 1;
+  common.v1.OperationID operation_id = 2;
+  int64 sequence = 3;
+  EventType event_type = 4;
+  string from_state = 5;
+  string to_state = 6;
+  string step = 7;
+  google.protobuf.Any payload = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
+
+enum EventType {
+  EVENT_TYPE_UNSPECIFIED = 0;
+  EVENT_TYPE_STATE_TRANSITION = 1;
+  EVENT_TYPE_COMMAND_SENT = 2;
+  EVENT_TYPE_EVENT_RECEIVED = 3;
+  EVENT_TYPE_STEP_STARTED = 4;
+  EVENT_TYPE_STEP_FINISHED = 5;
+  EVENT_TYPE_ERROR = 6;
+}
+
+// ============================================================================
+// Internal command/event envelopes (for NATS)
+// ============================================================================
+
+message OperationCommand {
+  string command_id = 1;
+  common.v1.OperationID operation_id = 2;
+  common.v1.RequestID request_id = 3;
+  string operation_type = 4;
+  string target_domain = 5;
+  google.protobuf.Timestamp issued_at = 6;
+  google.protobuf.Any payload = 7;
+}
+
+message OperationEventEnvelope {
+  string event_id = 1;
+  string subject = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  google.protobuf.Any payload = 4;
+}
+
+service OperationService {
+  rpc CreateOperation(CreateOperationRequest) returns (Operation);
+  rpc GetOperation(GetOperationRequest) returns (Operation);
+  rpc TransitionOperation(TransitionOperationRequest) returns (google.protobuf.Empty);
+}
+
+message CreateOperationRequest {
+  string id = 1;
+  string resource_type = 2;
+  string resource_id = 3;
+  string project_id = 4;
+  string request_id = 5;
+  string operation_type = 6;
+}
+
+message GetOperationRequest {
+  string id = 1;
+}
+
+message TransitionOperationRequest {
+  string operation_id = 1;
+  string state = 2;
+  string step = 3;
+  bytes payload = 4;
+}

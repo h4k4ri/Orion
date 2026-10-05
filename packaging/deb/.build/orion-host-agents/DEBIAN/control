@@ -1,0 +1,8 @@
+Package: orion-host-agents
+Version: 0.1.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Maintainer: Horizon <opensource@horizon.invalid>
+Depends: bash, libvirt-daemon-system, libvirt-daemon-driver-qemu, libvirt-clients, qemu-system-x86, qemu-utils, openvswitch-switch, lvm2, orion-common (= 0.1.0)
+Description: Orion host agents starter package.

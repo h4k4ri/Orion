@@ -1,0 +1,1 @@
+"""Plugin protocol protobuf package."""

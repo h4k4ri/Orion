@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package node.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/node/v1;nodev1";
+
+import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
+
+// ============================================================================
+// Node registration and heartbeat
+// ============================================================================
+
+message Node {
+  common.v1.NodeID id = 1;
+  NodeResources resources = 2;
+  NodeTraits traits = 3;
+  NodeTopology topology = 4;
+  NodeStatus status = 5;
+  google.protobuf.Timestamp registered_at = 6;
+  google.protobuf.Timestamp last_heartbeat_at = 7;
+}
+
+message NodeResources {
+  CpuResources cpu = 1;
+  MemoryResources memory = 2;
+  DiskResources disk = 3;
+}
+
+message CpuResources {
+  int64 total = 1;
+  int64 reserved = 2;
+  int64 allocated = 3;
+}
+
+message MemoryResources {
+  int64 total_mb = 1;
+  int64 reserved_mb = 2;
+  int64 allocated_mb = 3;
+}
+
+message DiskResources {
+  int64 total_gb = 1;
+  int64 reserved_gb = 2;
+  int64 allocated_gb = 3;
+}
+
+message NodeTraits {
+  repeated string traits = 1;
+  repeated string hypervisors = 2;
+  repeated string cpu_vendors = 3;
+  repeated string network_capabilities = 4;
+  repeated string storage_capabilities = 5;
+}
+
+message NodeTopology {
+  string datacenter = 1;
+  string availability_zone = 2;
+  string rack = 3;
+  repeated string host_aggregates = 4;
+}
+
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  NODE_STATUS_ONLINE = 1;
+  NODE_STATUS_OFFLINE = 2;
+  NODE_STATUS_MAINTENANCE = 3;
+  NODE_STATUS_DRAINING = 4;
+}
+
+// ============================================================================
+// Registration
+// ============================================================================
+
+message RegisterNodeRequest {
+  Node node = 1;
+}
+
+message RegisterNodeResponse {
+  common.v1.NodeID node_id = 1;
+  bool accepted = 2;
+  string message = 3;
+}
+
+// ============================================================================
+// Heartbeat
+// ============================================================================
+
+message HeartbeatRequest {
+  common.v1.NodeID node_id = 1;
+  NodeResources resources = 2;
+  NodeStatus status = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message HeartbeatResponse {
+  bool ok = 1;
+  repeated DesiredStateUpdate desired_updates = 2;
+}
+
+message DesiredStateUpdate {
+  string resource_type = 1;
+  string resource_id = 2;
+  string action = 3;
+  bytes payload = 4;
+}
+
+// ============================================================================
+// Inventory queries
+// ============================================================================
+
+message GetInventoryRequest {
+  common.v1.NodeID node_id = 1;
+}
+
+message GetInventoryResponse {
+  NodeResources resources = 1;
+  NodeTraits traits = 2;
+  repeated InstanceSummary instances = 3;
+}
+
+message InstanceSummary {
+  common.v1.InstanceID id = 1;
+  string name = 2;
+  string status = 3;
+  int32 vcpus = 4;
+  int64 memory_mb = 5;
+  int64 disk_gb = 6;
+}

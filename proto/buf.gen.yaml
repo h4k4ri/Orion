@@ -1,0 +1,17 @@
+version: v2
+plugins:
+  # Go plugins
+  - remote: buf.build/protocolbuffers/go:v1.34.2
+    out: ../gen/go
+    opt:
+      - paths=source_relative
+
+  - remote: buf.build/grpc/go:v1.6.2
+    out: ../gen/go
+    opt:
+      - paths=source_relative
+
+  # Rust plugins (using prost + tonic) — requires protoc installed locally
+  # Run: cargo install prost-cli && cargo install tonic
+  # Then use: protoc --prost_out=gen/rust/src --tonic_out=gen/rust/src -I. *.proto
+  # Or add tonic-build with prost-build in Cargo.toml of each Rust crate

@@ -1,0 +1,27 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    zfsutils-linux \
+    zfs-import \
+    zfs-auto-snapshot \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /plugin
+
+COPY plugins/zfs/cmd/main.go ./cmd/
+COPY plugins/zfs/pkg ./pkg
+COPY sdk/go ./sdk
+COPY gen/go/plugin/v1 ./gen/go/plugin/v1
+
+RUN apt-get update && apt-get install -y golang-go && \
+    cd /plugin && go mod init github.com/horizon/orion/plugins/zfs && \
+    go mod tidy && \
+    go build -o zfs-plugin ./cmd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV ORION_PLUGIN_ENDPOINT=":50051"
+
+CMD ["/plugin/zfs-plugin"]

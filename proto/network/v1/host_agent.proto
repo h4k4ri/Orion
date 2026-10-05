@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package network.v1;
+
+option go_package = "github.com/horizon/orion/gen/go/network/v1;networkv1";
+
+service NetworkHostAgent {
+  rpc GetPort(GetResourceRequest) returns (ResourceResponse);
+  rpc GetNetwork(GetResourceRequest) returns (ResourceResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message GetResourceRequest {
+  string resource_id = 1;
+}
+
+message ResourceResponse {
+  string resource_id = 1;
+  bytes state_json = 2;
+  bool exists = 3;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool healthy = 1;
+  string message = 2;
+}

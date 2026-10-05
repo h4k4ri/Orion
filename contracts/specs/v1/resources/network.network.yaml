@@ -1,0 +1,43 @@
+apiVersion: orion.io/v1
+kind: ResourceSpec
+metadata:
+  kind: orion.io/network.network
+  version: v1
+  displayName: Virtual Network
+  description: Virtual private network
+
+spec:
+  fields:
+    name:
+      type: string
+      required: true
+
+    cidr:
+      type: string
+      required: true
+      description: Network CIDR block
+
+    vlan:
+      type: integer
+      description: VLAN ID (for tagged networks)
+
+    mtu:
+      type: integer
+      default: 1500
+
+    dhcp:
+      type: boolean
+      default: true
+
+operations:
+  create:
+    description: Create virtual network
+
+  delete:
+    description: Delete virtual network
+
+  update:
+    description: Update network settings
+
+observe:
+  description: Get network state and connected resources

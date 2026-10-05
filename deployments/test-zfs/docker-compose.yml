@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  zfs-plugin:
+    build:
+      context: ../..
+      dockerfile: deployments/test-zfs/Dockerfile
+    container_name: orion-zfs-plugin
+    hostname: zfs-plugin
+    privileged: true
+    environment:
+      - ORION_PLUGIN_ENDPOINT=:50051
+    ports:
+      - "50051:50051"
+    volumes:
+      - zfs-pool:/tank
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: orion-postgres
+    environment:
+      - POSTGRES_DB=orion
+      - POSTGRES_USER=orion
+      - POSTGRES_PASSWORD=orion
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  zfs-pool:

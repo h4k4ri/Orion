@@ -1,0 +1,27 @@
+---
+title: Orion
+description: Visao geral da arquitetura e da direcao inicial do projeto.
+template: splash
+hero:
+  title: Orion
+  tagline: Cloud federada, opinativa e focada no nucleo da IaaS.
+  actions:
+    - text: Comecar
+      link: /getting-started/overview/
+    - text: Arquitetura
+      link: /architecture/federated-cloud/
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Cloud federada">
+    Plano de controle global, celulas de execucao e agentes fortes nos hosts.
+  </Card>
+  <Card title="Stack opinativa">
+    Control plane em Go, agentes em Rust, KVM/libvirt, OVS/OVN, LVM, PostgreSQL e NATS.
+  </Card>
+  <Card title="Escopo controlado">
+    O projeto nasce para provar bem o nucleo de compute, rede, imagem e volume antes de crescer.
+  </Card>
+</CardGrid>

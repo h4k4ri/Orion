@@ -1,0 +1,12 @@
+{
+  "title": "Orion Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {"type":"timeseries","title":"HTTP request duration","gridPos":{"h":8,"w":12,"x":0,"y":0},"targets":[{"expr":"histogram_quantile(0.95, sum by (le, service_name) (rate(orion_http_request_duration_seconds_bucket[5m])))","legendFormat":"{{service_name}}"}]},
+    {"type":"timeseries","title":"NATS publish/consume","gridPos":{"h":8,"w":12,"x":12,"y":0},"targets":[{"expr":"sum by (service_name) (rate(orion_nats_publish_total[5m]))","legendFormat":"publish {{service_name}}"},{"expr":"sum by (service_name) (rate(orion_nats_consume_total[5m]))","legendFormat":"consume {{service_name}}"}]},
+    {"type":"timeseries","title":"Reconciliation results","gridPos":{"h":8,"w":12,"x":0,"y":8},"targets":[{"expr":"sum by (result) (rate(orion_node_reconcile_total[5m]))","legendFormat":"{{result}}"}]},
+    {"type":"timeseries","title":"Operations","gridPos":{"h":8,"w":12,"x":12,"y":8},"targets":[{"expr":"sum by (type,state) (rate(orion_operation_duration_seconds_count[5m]))","legendFormat":"{{type}} {{state}}"}]}
+  ]
+}

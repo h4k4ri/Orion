@@ -1,0 +1,122 @@
+kind: orion.io/storage.volume
+version: v1
+
+description: Block storage volumes
+
+capabilitiesSchema:
+  type: object
+  properties:
+    snapshots:
+      type: boolean
+      requires:
+        kind: orion.io/storage.snapshot
+        version: v1
+    clones:
+      type: boolean
+    thinProvisioning:
+      type: boolean
+    multiAttach:
+      type: boolean
+    maxVolumeSizeGb:
+      type: integer
+    compression:
+      type: object
+      properties:
+        supported:
+          type: array
+          items:
+            type: string
+            enum: [off, lz4, zstd, zstd-19, zstd-22]
+        default:
+          type: string
+    encryption:
+      type: object
+      properties:
+        supported:
+          type: boolean
+        default:
+          type: boolean
+
+operations:
+  - name: create
+    description: Create a new volume
+    async: true
+    cancellable: true
+    inputSchema:
+      type: object
+      required: [name, sizeGb]
+      properties:
+        name:
+          type: string
+        sizeGb:
+          type: integer
+          minimum: 1
+        compression:
+          type: string
+          enum: [off, lz4, zstd]
+        encrypted:
+          type: boolean
+          default: false
+    outputSchema:
+      type: object
+      properties:
+        resourceId:
+          type: string
+
+  - name: delete
+    description: Delete a volume
+    async: true
+    inputSchema:
+      type: object
+      required: [resourceId]
+      properties:
+        resourceId:
+          type: string
+
+  - name: resize
+    description: Resize a volume
+    async: true
+    inputSchema:
+      type: object
+      required: [resourceId, sizeGb]
+      properties:
+        resourceId:
+          type: string
+        sizeGb:
+          type: integer
+
+providerContract:
+  version: v1
+  operations:
+    - name: create
+      inputSchema:
+        type: object
+        required: [name, sizeGb]
+        properties:
+          name:
+            type: string
+          sizeGb:
+            type: integer
+          compression:
+            type: string
+          encrypted:
+            type: boolean
+      outputSchema:
+        type: object
+        properties:
+          externalId:
+            type: string
+    - name: delete
+      inputSchema:
+        required: [externalId]
+        properties:
+          externalId:
+            type: string
+    - name: resize
+      inputSchema:
+        required: [externalId, sizeGb]
+        properties:
+          externalId:
+            type: string
+          sizeGb:
+            type: integer
