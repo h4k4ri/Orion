@@ -1,123 +1,123 @@
-# Como contribuir
+# Contributing
 
-Obrigado por se interessar em contribuir com o Orion. Este projeto e uma plataforma IaaS open source escrita em Go e Rust, e toda contribuicao de codigo, documentacao, correcao de bug ou discussao de design e bem-vinda.
+Thanks for your interest in contributing to Orion. This project is an open source IaaS platform written in Go and Rust. Every contribution of code, documentation, bug fixes, or design discussion is welcome.
 
-## Onde comecar
+## Where to start
 
-- Leia o [`README.md`](README.md) para entender o proposito do projeto.
-- Leia o [`docs/openstack-service-model.md`](docs/openstack-service-model.md) para entender o que o Orion reaproveita do OpenStack e o que simplifica.
-- Leia o [`docs/execution-plan.md`](docs/execution-plan.md) para entender as fases e a ordem recomendada de implementacao.
-- Olhe as issues abertas. Issues marcadas com `good first issue` sao boas portas de entrada.
-- Se nao encontrar uma issue que combine com voce, abra uma nova descrevendo o que quer fazer antes de comecar.
+- Read the [`README.md`](README.md) to understand the purpose of the project.
+- Read [`docs/openstack-service-model.md`](docs/openstack-service-model.md) to see what Orion reuses from OpenStack and what it simplifies.
+- Read [`docs/execution-plan.md`](docs/execution-plan.md) to understand the phases and the recommended implementation order.
+- Browse open issues. Issues labeled `good first issue` are good entry points.
+- If you do not find an issue that fits, open a new one describing what you want to do before starting.
 
-## Dependencias locais
+## Local dependencies
 
 - `Go 1.27+`
-- `Rust 1.80+` (toolchain estavel)
-- `Docker` e `Docker Compose`
-- `libvirt`, `ovs`, `ovn`, `lvm2` no host de execucao
-- `nats-server`, `postgres` (subidos via `make dev-up`)
+- `Rust 1.80+` (stable toolchain)
+- `Docker` and `Docker Compose`
+- `libvirt`, `ovs`, `ovn`, `lvm2` on the execution host
+- `nats-server`, `postgres` (started via `make dev-up`)
 
-Comandos uteis:
+Useful commands:
 
 ```bash
-make dev-up     # dependencias locais (postgres, nats)
-make check      # build + lint + testes
-make build      # compila control plane e host agents
+make dev-up     # local dependencies (postgres, nats)
+make check      # build + lint + tests
+make build      # compile control plane and host agents
 ```
 
-## Fluxo de trabalho
+## Workflow
 
-1. Faca um fork do repositorio.
-2. Crie uma branch a partir de `main`:
+1. Fork the repository.
+2. Create a branch from `main`:
    ```bash
-   git checkout -b tipo/descricao-curta
+   git checkout -b type/short-description
    ```
-   Tipos comuns: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`.
-3. Faca commits pequenos e focados. Cada commit deve representar uma mudanca logica unica.
-4. Escreva testes para qualquer comportamento novo ou correcao de bug.
-5. Rode `make check` localmente antes de abrir o PR.
-6. Abra um Pull Request contra `main` descrevendo:
-   - o problema que voce resolve ou a capacidade que adiciona;
-   - como voce testou;
-   - qualquer impacto em outros servicos ou agentes.
+   Common types: `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`.
+3. Make small, focused commits. Each commit should represent a single logical change.
+4. Write tests for any new behavior or bug fix.
+5. Run `make check` locally before opening the PR.
+6. Open a Pull Request against `main` describing:
+   - the problem you solve or the capability you add;
+   - how you tested it;
+   - any impact on other services or agents.
 
-## Mensagens de commit
+## Commit messages
 
-Seguimos [Conventional Commits](https://www.conventionalcommits.org/pt-BR/v1.0.0/) em portugues, resumido:
-
-```text
-tipo(escopo opcional): resumo curto em minusculo
-
-Corpo opcional explicando o que e por que. Quebre linhas em ~72 colunas.
-```
-
-Tipos mais usados:
-
-- `feat`: nova capacidade
-- `fix`: correcao de bug
-- `docs`: somente documentacao
-- `refactor`: mudanca interna sem alterar comportamento
-- `test`: adicionando ou ajustando testes
-- `chore`: manutencao (deps, CI, etc.)
-
-Exemplos:
+We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), summarized:
 
 ```text
-feat(orion-compute): adiciona endpoint de criacao de VM com traits
-fix(orion-identity): corrige renovacao de token opaco expirado
-docs(readme): explica o criterio de simplificacao vs OpenStack
+type(optional scope): short lowercase summary
+
+Optional body explaining what and why. Wrap lines at ~72 columns.
 ```
 
-## Boas praticas de codigo
+Most used types:
 
-### Geral
+- `feat`: new capability
+- `fix`: bug fix
+- `docs`: documentation only
+- `refactor`: internal change with no behavior impact
+- `test`: adding or adjusting tests
+- `chore`: maintenance (deps, CI, etc.)
 
-- Nao commite segredo algum (token, chave, senha, certificado). Use `.env` local nunca versionado.
-- Nao commite artefatos de build (`target/`, `bin/`, `dist/`, `tmp/`) ou arquivos temporarios. O `.gitignore` ja cobre a maioria.
-- Mantenha o escopo de cada commit e PR pequeno. PRs grandes sao mais dificeis de revisar.
+Examples:
+
+```text
+feat(orion-compute): add VM creation endpoint with traits
+fix(orion-identity): fix renewal of expired opaque token
+docs(readme): explain the simplification criterion vs OpenStack
+```
+
+## Coding best practices
+
+### General
+
+- Never commit secrets (tokens, keys, passwords, certificates). Use a local, never-versioned `.env`.
+- Never commit build artifacts (`target/`, `bin/`, `dist/`, `tmp/`) or temporary files. The `.gitignore` already covers most of them.
+- Keep the scope of each commit and PR small. Large PRs are harder to review.
 
 ### Go
 
-- `go fmt` antes de commitar.
-- `go vet ./...` deve passar limpo.
-- Prefira pacotes pequenos com responsabilidade clara. Reaproveite o nucleo em `core/` quando possivel.
-- Mantenha adaptadores (DB, NATS, HTTP) explicitos; nao misture com dominio.
+- Run `go fmt` before committing.
+- `go vet ./...` must pass clean.
+- Prefer small packages with a clear responsibility. Reuse the core in `core/` when possible.
+- Keep adapters (DB, NATS, HTTP) explicit; do not mix them with domain code.
 
 ### Rust
 
-- `cargo fmt` antes de commitar.
-- `cargo clippy --all-targets -- -D warnings` deve passar limpo.
-- Erros devem propagar com `?` ou serem tratados explicitamente; evite `unwrap` em codigo de producao.
-- Use `tracing` (nao `println!`) para logs de operacao.
+- Run `cargo fmt` before committing.
+- `cargo clippy --all-targets -- -D warnings` must pass clean.
+- Errors must propagate with `?` or be handled explicitly; avoid `unwrap` in production code.
+- Use `tracing` (not `println!`) for operational logs.
 
 ### Protobuf
 
-- Toda mudanca em `.proto` exige rodar a geracao de codigo (`make gen` ou equivalente) e commitar tanto o proto quanto os arquivos gerados em `gen/`, `sdk/go/`, `sdk/rust/` ou `agents/*/src/generated/`.
+- Any change to a `.proto` file requires running code generation (`make gen` or equivalent) and committing both the proto and the generated files under `gen/`, `sdk/go/`, `sdk/rust/`, or `agents/*/src/generated/`.
 
-## Documentacao
+## Documentation
 
-- Toda mudanca de comportamento visivel ao usuario (CLI, API, config) deve atualizar o `README.md` ou os arquivos em `docs/` correspondentes.
-- Toda mudanca relevante deve ser adicionada na secao `[Unreleased]` do [`CHANGELOG.md`](CHANGELOG.md).
+- Any change in user-visible behavior (CLI, API, config) must update the `README.md` or the corresponding files in `docs/`.
+- Any notable change must be added to the `[Unreleased]` section of [`CHANGELOG.md`](CHANGELOG.md).
 
-## Reportando bugs
+## Reporting bugs
 
-Abra uma issue com:
+Open an issue with:
 
-- descricao curta e objetiva;
-- passos para reproduzir;
-- comportamento esperado vs observado;
-- versao do Orion, SO e versao do Go/Rust;
-- logs relevantes (use blocos de codigo, nunca cole segredos).
+- a short, objective description;
+- steps to reproduce;
+- expected vs observed behavior;
+- Orion version, OS, and Go/Rust versions;
+- relevant logs (use code blocks, never paste secrets).
 
-## Propostas maiores
+## Larger proposals
 
-Para mudancas que afetam arquitetura, contratos gRPC ou decisoes de longo prazo, abra uma issue com o prefixo `[RFC]` e espere discussao antes de escrever codigo.
+For changes that affect architecture, gRPC contracts, or long-term decisions, open an issue prefixed with `[RFC]` and wait for discussion before writing code.
 
-## Codigo de conduta
+## Code of conduct
 
-Esperamos respeito nas conversas, reviews e discussions. Ataques pessoais, assedio ou comportamento desrespeitoso nao sao tolerados.
+We expect respect in conversations, reviews, and discussions. Personal attacks, harassment, or disrespectful behavior are not tolerated.
 
-## Licenca
+## License
 
-Ao contribuir, voce concorda que suas contribuicoes serao licenciadas sob Apache-2.0, a mesma licenca do projeto.
+By contributing, you agree that your contributions will be licensed under Apache-2.0, the same license as the project.
